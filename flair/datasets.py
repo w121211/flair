@@ -143,6 +143,7 @@ class ClassificationCorpus(Corpus):
     def __init__(
             self,
             data_folder: Union[str, Path],
+            label_type: str = 'class',
             train_file=None,
             test_file=None,
             dev_file=None,
@@ -171,6 +172,7 @@ class ClassificationCorpus(Corpus):
 
         train: FlairDataset = ClassificationDataset(
             train_file,
+            label_type=label_type,
             tokenizer=tokenizer,
             max_tokens_per_doc=max_tokens_per_doc,
             max_chars_per_doc=max_chars_per_doc,
@@ -180,6 +182,7 @@ class ClassificationCorpus(Corpus):
         # use test_file to create test split if available
         test: FlairDataset = ClassificationDataset(
             test_file,
+            label_type=label_type,
             tokenizer=tokenizer,
             max_tokens_per_doc=max_tokens_per_doc,
             max_chars_per_doc=max_chars_per_doc,
@@ -189,6 +192,7 @@ class ClassificationCorpus(Corpus):
         # use dev_file to create test split if available
         dev: FlairDataset = ClassificationDataset(
             dev_file,
+            label_type=label_type,
             tokenizer=tokenizer,
             max_tokens_per_doc=max_tokens_per_doc,
             max_chars_per_doc=max_chars_per_doc,
@@ -242,6 +246,7 @@ class CSVClassificationCorpus(Corpus):
             self,
             data_folder: Union[str, Path],
             column_name_map: Dict[int, str],
+            label_type: str = 'class',
             train_file=None,
             test_file=None,
             dev_file=None,
@@ -275,6 +280,7 @@ class CSVClassificationCorpus(Corpus):
         train: FlairDataset = CSVClassificationDataset(
             train_file,
             column_name_map,
+            label_type=label_type,
             tokenizer=tokenizer,
             max_tokens_per_doc=max_tokens_per_doc,
             max_chars_per_doc=max_chars_per_doc,
@@ -286,6 +292,7 @@ class CSVClassificationCorpus(Corpus):
         test: FlairDataset = CSVClassificationDataset(
             test_file,
             column_name_map,
+            label_type=label_type,
             tokenizer=tokenizer,
             max_tokens_per_doc=max_tokens_per_doc,
             max_chars_per_doc=max_chars_per_doc,
@@ -297,6 +304,7 @@ class CSVClassificationCorpus(Corpus):
         dev: FlairDataset = CSVClassificationDataset(
             dev_file,
             column_name_map,
+            label_type=label_type,
             tokenizer=tokenizer,
             max_tokens_per_doc=max_tokens_per_doc,
             max_chars_per_doc=max_chars_per_doc,
@@ -557,7 +565,7 @@ class ColumnDataset(FlairDataset):
                     for column in column_name_map:
                         if len(fields) > column:
                             if column != self.text_column:
-                                token.add_tag(
+                                token.add_label(
                                     self.column_name_map[column], fields[column]
                                 )
 
@@ -625,7 +633,7 @@ class ColumnDataset(FlairDataset):
                         for column in self.column_name_map:
                             if len(fields) > column:
                                 if column != self.text_column:
-                                    token.add_tag(
+                                    token.add_label(
                                         self.column_name_map[column], fields[column]
                                     )
 
@@ -685,10 +693,10 @@ class UniversalDependenciesDataset(FlairDataset):
                     continue
                 else:
                     token = Token(fields[1], head_id=int(fields[6]))
-                    token.add_tag("lemma", str(fields[2]))
-                    token.add_tag("upos", str(fields[3]))
-                    token.add_tag("pos", str(fields[4]))
-                    token.add_tag("dependency", str(fields[7]))
+                    token.add_label("lemma", str(fields[2]))
+                    token.add_label("upos", str(fields[3]))
+                    token.add_label("pos", str(fields[4]))
+                    token.add_label("dependency", str(fields[7]))
 
                     if len(fields) > 9 and 'SpaceAfter=No' in fields[9]:
                         token.whitespace_after = False
@@ -696,10 +704,10 @@ class UniversalDependenciesDataset(FlairDataset):
                     for morph in str(fields[5]).split("|"):
                         if "=" not in morph:
                             continue
-                        token.add_tag(morph.split("=")[0].lower(), morph.split("=")[1])
+                        token.add_label(morph.split("=")[0].lower(), morph.split("=")[1])
 
                     if len(fields) > 10 and str(fields[10]) == "Y":
-                        token.add_tag("frame", str(fields[11]))
+                        token.add_label("frame", str(fields[11]))
 
                     sentence.add_token(token)
 
@@ -745,10 +753,10 @@ class UniversalDependenciesDataset(FlairDataset):
                         continue
                     else:
                         token = Token(fields[1], head_id=int(fields[6]))
-                        token.add_tag("lemma", str(fields[2]))
-                        token.add_tag("upos", str(fields[3]))
-                        token.add_tag("pos", str(fields[4]))
-                        token.add_tag("dependency", str(fields[7]))
+                        token.add_label("lemma", str(fields[2]))
+                        token.add_label("upos", str(fields[3]))
+                        token.add_label("pos", str(fields[4]))
+                        token.add_label("dependency", str(fields[7]))
 
                         if len(fields) > 9 and 'SpaceAfter=No' in fields[9]:
                             token.whitespace_after = False
@@ -756,12 +764,12 @@ class UniversalDependenciesDataset(FlairDataset):
                         for morph in str(fields[5]).split("|"):
                             if "=" not in morph:
                                 continue
-                            token.add_tag(
+                            token.add_label(
                                 morph.split("=")[0].lower(), morph.split("=")[1]
                             )
 
                         if len(fields) > 10 and str(fields[10]) == "Y":
-                            token.add_tag("frame", str(fields[11]))
+                            token.add_label("frame", str(fields[11]))
 
                         sentence.add_token(token)
 
@@ -774,6 +782,7 @@ class CSVClassificationDataset(FlairDataset):
             self,
             path_to_file: Union[str, Path],
             column_name_map: Dict[int, str],
+            label_type: str = "class",
             max_tokens_per_doc: int = -1,
             max_chars_per_doc: int = -1,
             tokenizer=segtok_tokenizer,
@@ -866,7 +875,7 @@ class CSVClassificationDataset(FlairDataset):
                                 self.column_name_map[column].startswith("label")
                                 and row[column]
                         ):
-                            sentence.add_label(row[column])
+                            sentence.add_label(label_type, row[column])
 
                     if 0 < self.max_tokens_per_doc < len(sentence):
                         sentence.tokens = sentence.tokens[: self.max_tokens_per_doc]
@@ -909,6 +918,7 @@ class ClassificationDataset(FlairDataset):
     def __init__(
             self,
             path_to_file: Union[str, Path],
+            label_type: str = 'class',
             max_tokens_per_doc=-1,
             max_chars_per_doc=-1,
             tokenizer=segtok_tokenizer,
@@ -933,6 +943,7 @@ class ClassificationDataset(FlairDataset):
         assert path_to_file.exists()
 
         self.label_prefix = "__label__"
+        self.label_type = label_type
 
         self.in_memory = in_memory
         self.tokenizer = tokenizer
@@ -993,7 +1004,10 @@ class ClassificationDataset(FlairDataset):
             text = text[: self.max_chars_per_doc]
 
         if text and labels:
-            sentence = Sentence(text, labels=labels, use_tokenizer=tokenizer)
+            sentence = Sentence(text, use_tokenizer=tokenizer)
+
+            for label in labels:
+                sentence.add_label(self.label_type, label)
 
             if (
                     sentence is not None
@@ -1517,6 +1531,229 @@ class CONLL_2000(ColumnCorpus):
         )
 
 
+class SENTEVAL_CR(ClassificationCorpus):
+    def __init__(
+            self,
+            in_memory: bool = True,
+    ):
+        # this dataset name
+        dataset_name = self.__class__.__name__.lower()
+
+        # default dataset folder is the cache root
+        data_folder = Path(flair.cache_root) / "datasets" / dataset_name
+
+        # download data if necessary
+        if not (data_folder / "train.txt").is_file():
+
+            # download senteval datasets if necessary und unzip
+            senteval_path = "https://dl.fbaipublicfiles.com/senteval/senteval_data/datasmall_NB_ACL12.zip"
+            cached_path(senteval_path, Path("datasets") / "senteval")
+            senteval_folder = Path(flair.cache_root) / "datasets" / "senteval"
+            unzip_file(senteval_folder / "datasmall_NB_ACL12.zip", senteval_folder)
+
+            # create dataset directory if necessary
+            if not os.path.exists(data_folder):
+                os.makedirs(data_folder)
+
+            # create train.txt file by iterating over pos and neg file
+            with open(data_folder / "train.txt", "a") as train_file:
+
+                with open(senteval_folder / "data" / "customerr" / "custrev.pos", encoding="latin1") as file:
+                    for line in file:
+                        train_file.write(f"__label__POSITIVE {line}")
+
+                with open(senteval_folder / "data" / "customerr" / "custrev.neg", encoding="latin1") as file:
+                    for line in file:
+                        train_file.write(f"__label__NEGATIVE {line}")
+
+        super(SENTEVAL_CR, self).__init__(
+            data_folder, label_type='sentiment', tokenizer=segtok_tokenizer, in_memory=in_memory
+        )
+
+
+class SENTEVAL_MR(ClassificationCorpus):
+    def __init__(
+            self,
+            in_memory: bool = True,
+    ):
+        # this dataset name
+        dataset_name = self.__class__.__name__.lower()
+
+        # default dataset folder is the cache root
+        data_folder = Path(flair.cache_root) / "datasets" / dataset_name
+
+        # download data if necessary
+        if not (data_folder / "train.txt").is_file():
+
+            # download senteval datasets if necessary und unzip
+            senteval_path = "https://dl.fbaipublicfiles.com/senteval/senteval_data/datasmall_NB_ACL12.zip"
+            cached_path(senteval_path, Path("datasets") / "senteval")
+            senteval_folder = Path(flair.cache_root) / "datasets" / "senteval"
+            unzip_file(senteval_folder / "datasmall_NB_ACL12.zip", senteval_folder)
+
+            # create dataset directory if necessary
+            if not os.path.exists(data_folder):
+                os.makedirs(data_folder)
+
+            # create train.txt file by iterating over pos and neg file
+            with open(data_folder / "train.txt", "a") as train_file:
+
+                with open(senteval_folder / "data" / "rt10662" / "rt-polarity.pos", encoding="latin1") as file:
+                    for line in file:
+                        train_file.write(f"__label__POSITIVE {line}")
+
+                with open(senteval_folder / "data" / "rt10662" / "rt-polarity.neg", encoding="latin1") as file:
+                    for line in file:
+                        train_file.write(f"__label__NEGATIVE {line}")
+
+        super(SENTEVAL_MR, self).__init__(
+            data_folder, label_type='sentiment', tokenizer=segtok_tokenizer, in_memory=in_memory
+        )
+
+
+class SENTEVAL_SUBJ(ClassificationCorpus):
+    def __init__(
+            self,
+            in_memory: bool = True,
+    ):
+        # this dataset name
+        dataset_name = self.__class__.__name__.lower()
+
+        # default dataset folder is the cache root
+        data_folder = Path(flair.cache_root) / "datasets" / dataset_name
+
+        # download data if necessary
+        if not (data_folder / "train.txt").is_file():
+
+            # download senteval datasets if necessary und unzip
+            senteval_path = "https://dl.fbaipublicfiles.com/senteval/senteval_data/datasmall_NB_ACL12.zip"
+            cached_path(senteval_path, Path("datasets") / "senteval")
+            senteval_folder = Path(flair.cache_root) / "datasets" / "senteval"
+            unzip_file(senteval_folder / "datasmall_NB_ACL12.zip", senteval_folder)
+
+            # create dataset directory if necessary
+            if not os.path.exists(data_folder):
+                os.makedirs(data_folder)
+
+            # create train.txt file by iterating over pos and neg file
+            with open(data_folder / "train.txt", "a") as train_file:
+
+                with open(senteval_folder / "data" / "subj" / "subj.subjective", encoding="latin1") as file:
+                    for line in file:
+                        train_file.write(f"__label__SUBJECTIVE {line}")
+
+                with open(senteval_folder / "data" / "subj" / "subj.objective", encoding="latin1") as file:
+                    for line in file:
+                        train_file.write(f"__label__OBJECTIVE {line}")
+
+        super(SENTEVAL_SUBJ, self).__init__(
+            data_folder, label_type='objectivity', tokenizer=segtok_tokenizer, in_memory=in_memory
+        )
+
+
+class SENTEVAL_MPQA(ClassificationCorpus):
+    def __init__(
+            self,
+            in_memory: bool = True,
+    ):
+        # this dataset name
+        dataset_name = self.__class__.__name__.lower()
+
+        # default dataset folder is the cache root
+        data_folder = Path(flair.cache_root) / "datasets" / dataset_name
+
+        # download data if necessary
+        if not (data_folder / "train.txt").is_file():
+
+            # download senteval datasets if necessary und unzip
+            senteval_path = "https://dl.fbaipublicfiles.com/senteval/senteval_data/datasmall_NB_ACL12.zip"
+            cached_path(senteval_path, Path("datasets") / "senteval")
+            senteval_folder = Path(flair.cache_root) / "datasets" / "senteval"
+            unzip_file(senteval_folder / "datasmall_NB_ACL12.zip", senteval_folder)
+
+            # create dataset directory if necessary
+            if not os.path.exists(data_folder):
+                os.makedirs(data_folder)
+
+            # create train.txt file by iterating over pos and neg file
+            with open(data_folder / "train.txt", "a") as train_file:
+
+                with open(senteval_folder / "data" / "mpqa" / "mpqa.pos", encoding="latin1") as file:
+                    for line in file:
+                        train_file.write(f"__label__POSITIVE {line}")
+
+                with open(senteval_folder / "data" / "mpqa" / "mpqa.neg", encoding="latin1") as file:
+                    for line in file:
+                        train_file.write(f"__label__NEGATIVE {line}")
+
+        super(SENTEVAL_MPQA, self).__init__(
+            data_folder, label_type='sentiment', tokenizer=segtok_tokenizer, in_memory=in_memory
+        )
+
+
+class SENTEVAL_SST_BINARY(CSVClassificationCorpus):
+    def __init__(
+            self,
+            in_memory: bool = True,
+    ):
+        # this dataset name
+        dataset_name = self.__class__.__name__.lower()
+
+        # default dataset folder is the cache root
+        data_folder = Path(flair.cache_root) / "datasets" / dataset_name
+
+        # download data if necessary
+        if not (data_folder / "train.txt").is_file():
+
+            # download senteval datasets if necessary und unzip
+            cached_path('https://raw.githubusercontent.com/PrincetonML/SIF/master/data/sentiment-train', Path("datasets") / dataset_name)
+            cached_path('https://raw.githubusercontent.com/PrincetonML/SIF/master/data/sentiment-test', Path("datasets") / dataset_name)
+            cached_path('https://raw.githubusercontent.com/PrincetonML/SIF/master/data/sentiment-dev', Path("datasets") / dataset_name)
+
+        super(SENTEVAL_SST_BINARY, self).__init__(
+            data_folder,
+            column_name_map={0: 'text', 1: 'label'},
+            tokenizer=segtok_tokenizer,
+            in_memory=in_memory,
+            delimiter='\t',
+            quotechar=None,
+        )
+
+
+class SENTEVAL_SST_GRANULAR(ClassificationCorpus):
+    def __init__(
+            self,
+            in_memory: bool = True,
+    ):
+        # this dataset name
+        dataset_name = self.__class__.__name__.lower()
+
+        # default dataset folder is the cache root
+        data_folder = Path(flair.cache_root) / "datasets" / dataset_name
+
+        # download data if necessary
+        if not (data_folder / "train.txt").is_file():
+
+            # download senteval datasets if necessary und unzip
+            cached_path('https://raw.githubusercontent.com/AcademiaSinicaNLPLab/sentiment_dataset/master/data/stsa.fine.train', Path("datasets") / dataset_name / 'raw')
+            cached_path('https://raw.githubusercontent.com/AcademiaSinicaNLPLab/sentiment_dataset/master/data/stsa.fine.test', Path("datasets") / dataset_name / 'raw')
+            cached_path('https://raw.githubusercontent.com/AcademiaSinicaNLPLab/sentiment_dataset/master/data/stsa.fine.dev', Path("datasets") / dataset_name / 'raw')
+
+            # convert to FastText format
+            for split in ['train', 'dev', 'test']:
+                with open(data_folder / f"{split}.txt", "w") as train_file:
+
+                    with open(data_folder / 'raw' / f'stsa.fine.{split}', encoding="latin1") as file:
+                        for line in file:
+                            train_file.write(f"__label__{line[0]} {line[2:]}")
+
+        super(SENTEVAL_SST_GRANULAR, self).__init__(
+            data_folder,
+            tokenizer=segtok_tokenizer,
+            in_memory=in_memory,
+        )
+
+
 class GERMEVAL(ColumnCorpus):
     def __init__(
             self,
@@ -1923,7 +2160,7 @@ class TREC_6(ClassificationCorpus):
                             write_fp.write(f"{new_label} {question}\n")
 
         super(TREC_6, self).__init__(
-            data_folder, tokenizer=space_tokenizer, in_memory=in_memory
+            data_folder, label_type='question_type', tokenizer=space_tokenizer, in_memory=in_memory
         )
 
 

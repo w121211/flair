@@ -423,7 +423,7 @@ class SequenceTagger(flair.nn.Model):
                 for (sentence, sent_tags) in zip(batch, tags):
                     for (token, tag) in zip(sentence.tokens, sent_tags):
                         token: Token = token
-                        token.add_tag_label("predicted", tag)
+                        token.add_tag("predicted", tag.value, tag.score)
 
                         # append both to file for evaluation
                         eval_line = "{} {} {} {}\n".format(
@@ -434,14 +434,15 @@ class SequenceTagger(flair.nn.Model):
                         )
                         lines.append(eval_line)
                     lines.append("\n")
+
                 for sentence in batch:
                     # make list of gold tags
                     gold_tags = [
-                        (tag.tag, str(tag)) for tag in sentence.get_spans(self.tag_type)
+                        (tag.tag, tag.text) for tag in sentence.get_spans(self.tag_type)
                     ]
                     # make list of predicted tags
                     predicted_tags = [
-                        (tag.tag, str(tag)) for tag in sentence.get_spans("predicted")
+                        (tag.tag, tag.text) for tag in sentence.get_spans("predicted")
                     ]
 
                     # check for true positives, false positives and false negatives

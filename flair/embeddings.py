@@ -782,7 +782,8 @@ class BytePairEmbeddings(TokenEmbeddings):
 
 
 class ELMoEmbeddings(TokenEmbeddings):
-    """Contextual word embeddings using word-level LM, as proposed in Peters et al., 2018."""
+    """Contextual word embeddings using word-level LM, as proposed in Peters et al., 2018.
+    ELMo word vectors are constructed by concatenating the top 3 layers in the LM."""
 
     def __init__(
         self, model: str = "original", options_file: str = None, weight_file: str = None
@@ -1933,6 +1934,9 @@ class FlairEmbeddings(TokenEmbeddings):
             # Japanese
             "ja-forward": f"{aws_path}/embeddings-v0.4.1/lm__char-forward__ja-wikipedia-3GB/japanese-forward.pt",
             "ja-backward": f"{aws_path}/embeddings-v0.4.1/lm__char-backward__ja-wikipedia-3GB/japanese-backward.pt",
+            # Malayalam
+            "ml-forward": f"https://raw.githubusercontent.com/qburst/models-repository/master/FlairMalayalamModels/ml-forward.pt",
+            "ml-backward": f"https://raw.githubusercontent.com/qburst/models-repository/master/FlairMalayalamModels/ml-backward.pt",
             # Dutch
             "nl-forward": f"{aws_path}/embeddings-stefan-it/lm-nl-opus-large-forward-v0.1.pt",
             "nl-backward": f"{aws_path}/embeddings-stefan-it/lm-nl-opus-large-backward-v0.1.pt",
@@ -2185,6 +2189,13 @@ class PooledFlairEmbeddings(TokenEmbeddings):
 
     def embedding_length(self) -> int:
         return self.embedding_length
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+
+        if flair.device != 'cpu':
+            for key in self.word_embeddings:
+                self.word_embeddings[key] = self.word_embeddings[key].cpu()
 
 
 class BertEmbeddings(TokenEmbeddings):

@@ -109,3 +109,6 @@ Pipfile.lock
 
 resources/taggers/
 regression_train/
+
+# my settings
+/data

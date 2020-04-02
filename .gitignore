@@ -111,4 +111,4 @@ resources/taggers/
 regression_train/
 
 # my settings
-/data
+data/

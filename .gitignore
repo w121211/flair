@@ -112,3 +112,4 @@ regression_train/
 
 # my settings
 data/
+.DS_store

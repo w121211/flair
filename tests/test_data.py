@@ -1,19 +1,18 @@
+import flair
 import os
-from typing import List
-
 import pytest
 
-import flair.datasets
+from typing import List
+
 from flair.data import (
     Sentence,
     Label,
     Token,
     Dictionary,
     Corpus,
-    Span,
-    segtok_tokenizer,
-    build_japanese_tokenizer
+    Span
 )
+from flair.tokenization import SpacyTokenizer, SegtokTokenizer, JapaneseTokenizer, TokenizerWrapper
 
 
 def test_get_head():
@@ -45,17 +44,75 @@ def test_create_sentence_without_tokenizer():
     assert "love" == sentence.tokens[1].text
     assert "Berlin." == sentence.tokens[2].text
 
+def test_create_sentence_with_tokenizer():
+    sentence: Sentence = Sentence("I love Berlin.", use_tokenizer=True)
+
+    assert 4 == len(sentence.tokens)
+    assert "I" == sentence.tokens[0].text
+    assert "love" == sentence.tokens[1].text
+    assert "Berlin" == sentence.tokens[2].text
+    assert "." == sentence.tokens[3].text
+
+
+def test_create_sentence_with_custom_tokenizer():
+    def custom_tokenizer(text: str) -> List[Token]:
+        return [Token(text, 0)]
+
+    sentence:Sentence = Sentence("I love Berlin.", use_tokenizer=TokenizerWrapper(custom_tokenizer))
+    assert 1 == len(sentence.tokens)
+    assert "I love Berlin." == sentence.tokens[0].text
+
+
+def test_create_sentence_with_callable():
+    def custom_tokenizer(text: str) -> List[Token]:
+        return [Token(text, 0)]
+
+    sentence:Sentence = Sentence("I love Berlin.", use_tokenizer=custom_tokenizer)
+    assert 1 == len(sentence.tokens)
+    assert "I love Berlin." == sentence.tokens[0].text
+
+
+@pytest.mark.skip(reason="SpacyTokenizer needs optional requirements, so we skip the test by default")
+def test_create_sentence_with_spacy_tokenizer():
+    sentence:Sentence = Sentence("I love Berlin.", use_tokenizer=SpacyTokenizer("en_core_sci_sm"))
+
+    assert 4 == len(sentence.tokens)
+    assert "I" == sentence.tokens[0].text
+    assert "love" == sentence.tokens[1].text
+    assert "Berlin" == sentence.tokens[2].text
+    assert "." == sentence.tokens[3].text
+
 
 # skip because it is optional https://github.com/flairNLP/flair/pull/1296
-# def test_create_sentence_using_japanese_tokenizer():
-#     sentence: Sentence = Sentence("私はベルリンが好き", use_tokenizer=build_japanese_tokenizer())
-#
-#     assert 5 == len(sentence.tokens)
-#     assert "私" == sentence.tokens[0].text
-#     assert "は" == sentence.tokens[1].text
-#     assert "ベルリン" == sentence.tokens[2].text
-#     assert "が" == sentence.tokens[3].text
-#     assert "好き" == sentence.tokens[4].text
+@pytest.mark.skip(reason="JapaneseTokenizer need optional requirements, so we skip the test by default")
+def test_create_sentence_using_japanese_tokenizer():
+    sentence: Sentence = Sentence("私はベルリンが好き", use_tokenizer=JapaneseTokenizer("mecab"))
+
+    assert 5 == len(sentence.tokens)
+    assert "私" == sentence.tokens[0].text
+    assert "は" == sentence.tokens[1].text
+    assert "ベルリン" == sentence.tokens[2].text
+    assert "が" == sentence.tokens[3].text
+    assert "好き" == sentence.tokens[4].text
+
+
+def test_problem_sentences():
+    text = "so out of the norm ❤ ️ enjoyed every moment️"
+    sentence = Sentence(text)
+    assert len(sentence) == 9
+
+    text= "equivalently , accumulating the logs as :( 6 ) sl = 1N ∑ t = 1Nlogp ( Ll | xt ​ , θ ) where " \
+          "p ( Ll | xt ​ , θ ) represents the class probability output"
+    sentence = Sentence(text)
+    assert len(sentence) == 37
+
+    text = "This guy needs his own show on Discivery Channel ! ﻿"
+    sentence = Sentence(text)
+    assert len(sentence) == 10
+
+    text = "n't have new vintages."
+    sentence = Sentence(text, use_tokenizer=True)
+    assert len(sentence) == 5
 
 
 def test_token_indices():
@@ -65,7 +122,7 @@ def test_token_indices():
     assert text == sentence.to_original_text()
 
     text = ":    nation on"
-    sentence = Sentence(text, use_tokenizer=segtok_tokenizer)
+    sentence = Sentence(text, use_tokenizer=SegtokTokenizer())
     assert text == sentence.to_original_text()
 
     text = "I love Berlin."
@@ -77,12 +134,12 @@ def test_token_indices():
     assert text == sentence.to_original_text()
 
     text = 'Schartau sagte dem " Tagesspiegel " vom Freitag , Fischer sei " in einer Weise aufgetreten , die alles andere als überzeugend war " .'
-    sentence = Sentence(text, use_tokenizer=segtok_tokenizer)
+    sentence = Sentence(text, use_tokenizer=SegtokTokenizer())
     assert text == sentence.to_original_text()
 
 
-def test_create_sentence_with_tokenizer():
-    sentence: Sentence = Sentence("I love Berlin.", use_tokenizer=segtok_tokenizer)
+def test_create_sentence_with_segtoktokenizer():
+    sentence: Sentence = Sentence("I love Berlin.", use_tokenizer=SegtokTokenizer())
 
     assert 4 == len(sentence.tokens)
     assert "I" == sentence.tokens[0].text
@@ -92,18 +149,19 @@ def test_create_sentence_with_tokenizer():
 
 
 def test_sentence_to_plain_string():
-    sentence: Sentence = Sentence("I love Berlin.", use_tokenizer=segtok_tokenizer)
+    sentence: Sentence = Sentence("I love Berlin.", use_tokenizer=SegtokTokenizer())
 
     assert "I love Berlin ." == sentence.to_tokenized_string()
 
 
 def test_sentence_to_real_string(tasks_base_path):
-    sentence: Sentence = Sentence("I love Berlin.", use_tokenizer=segtok_tokenizer)
+    sentence: Sentence = Sentence("I love Berlin.", use_tokenizer=SegtokTokenizer())
     assert "I love Berlin." == sentence.to_plain_string()
 
-    corpus = flair.datasets.GERMEVAL(base_path=tasks_base_path)
+    corpus = flair.datasets.GERMEVAL_14(base_path=tasks_base_path)
 
     sentence = corpus.train[0]
+    sentence.infer_space_after()
     assert (
         'Schartau sagte dem " Tagesspiegel " vom Freitag , Fischer sei " in einer Weise aufgetreten , die alles andere als überzeugend war " .'
         == sentence.to_tokenized_string()
@@ -114,6 +172,7 @@ def test_sentence_to_real_string(tasks_base_path):
     )
 
     sentence = corpus.train[1]
+    sentence.infer_space_after()
     assert (
         "Firmengründer Wolf Peter Bree arbeitete Anfang der siebziger Jahre als Möbelvertreter , als er einen fliegenden Händler aus dem Libanon traf ."
         == sentence.to_tokenized_string()
@@ -142,7 +201,7 @@ def test_sentence_infer_tokenization():
 
 
 def test_sentence_get_item():
-    sentence: Sentence = Sentence("I love Berlin.", use_tokenizer=segtok_tokenizer)
+    sentence: Sentence = Sentence("I love Berlin.", use_tokenizer=SegtokTokenizer())
 
     assert sentence.get_token(1) == sentence[0]
     assert sentence.get_token(3) == sentence[2]
@@ -271,10 +330,10 @@ def test_dictionary_save_and_load():
 
 
 def test_tagged_corpus_get_all_sentences():
-    train_sentence = Sentence("I'm used in training.", use_tokenizer=segtok_tokenizer)
-    dev_sentence = Sentence("I'm a dev sentence.", use_tokenizer=segtok_tokenizer)
+    train_sentence = Sentence("I'm used in training.", use_tokenizer=SegtokTokenizer())
+    dev_sentence = Sentence("I'm a dev sentence.", use_tokenizer=SegtokTokenizer())
     test_sentence = Sentence(
-        "I will be only used for testing.", use_tokenizer=segtok_tokenizer
+        "I will be only used for testing.", use_tokenizer=SegtokTokenizer()
     )
 
     corpus: Corpus = Corpus([train_sentence], [dev_sentence], [test_sentence])
@@ -286,7 +345,7 @@ def test_tagged_corpus_get_all_sentences():
 
 def test_tagged_corpus_make_vocab_dictionary():
     train_sentence = Sentence(
-        "used in training. training is cool.", use_tokenizer=segtok_tokenizer
+        "used in training. training is cool.", use_tokenizer=SegtokTokenizer()
     )
 
     corpus: Corpus = Corpus([train_sentence], [], [])
@@ -402,7 +461,7 @@ def test_tagged_corpus_get_tag_statistic():
 
     dev_sentence = Sentence(
         "Facebook, Inc. is a company, and Google is one as well.",
-        use_tokenizer=segtok_tokenizer,
+        use_tokenizer=SegtokTokenizer(),
     )
     dev_sentence[0].add_tag("ner", "B-ORG")
     dev_sentence[1].add_tag("ner", "I-ORG")
@@ -445,7 +504,7 @@ def test_tagged_corpus_downsample():
 
     assert 10 == len(corpus.train)
 
-    corpus.downsample(percentage=0.3, only_downsample_train=True)
+    corpus.downsample(percentage=0.3, downsample_dev=False, downsample_test=False)
 
     assert 3 == len(corpus.train)
 
@@ -568,7 +627,7 @@ def test_token_position_in_sentence():
     assert 7 == sentence.tokens[2].start_position
     assert 13 == sentence.tokens[2].end_position
 
-    sentence = Sentence(" I love  Berlin.", use_tokenizer=segtok_tokenizer)
+    sentence = Sentence(" I love  Berlin.", use_tokenizer=SegtokTokenizer())
 
     assert 1 == sentence.tokens[0].start_position
     assert 2 == sentence.tokens[0].end_position

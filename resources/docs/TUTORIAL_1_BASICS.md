@@ -23,7 +23,7 @@ print(sentence)
 This should print:
 
 ```console
-Sentence: "The grass is green ." - 5 Tokens
+Sentence: "The grass is green ."   [− Tokens: 5]
 ```
 
 The print-out tells us that the sentence consists of 5 tokens.
@@ -80,14 +80,14 @@ print(sentence)
 
 ### Adding Custom Tokenizers
 
-You can also pass custom tokenizers to the initialization method. Instead of passing a boolean `True` value to the `use_tokenizer` parameter, you can pass a tokenization method, like this:
+You can also pass custom tokenizers to the initialization method. Instead of passing a boolean `True` value to the `use_tokenizer` parameter, you can pass an implementation of `Tokenizer` class, like this:
 
 ```python
-from flair.data import Sentence, segtok_tokenizer
-
+from flair.data import Sentence
+from flair.tokenization import SegtokTokenizer
 
 # Make a sentence object by passing an untokenized string and a tokenizer
-sentence = Sentence('The grass is green.', use_tokenizer=segtok_tokenizer)
+sentence = Sentence('The grass is green.', use_tokenizer=SegtokTokenizer())
 
 # Print the object to see what's in there
 print(sentence)
@@ -99,9 +99,13 @@ This should print:
 Sentence: "The grass is green ." - 5 Tokens
 ```
 
-The second way allows you to write your own wrapper around the tokenizer you want to use. The wrapper is a function which has the same signature as `flair.data.segtok_tokenizer` (take a `string` and return `List[Token]`). Check the code of `flair.data.space_tokenizer` (which is very simple) to have an idea of how to implement such wrapper.  
+The second way allows you to write your own tokenization routine. Check the code of `flair.data.Tokenizer` and it's implementations (e.g. `flair.tokenization.SegtokTokenizer` or `flair.tokenization.SpacyTokenizer`) to have an idea of how to add your own tokenization.  
 
-## Adding Tags to Tokens
+## Adding Labels
+
+In Flair, any data point can be labeled. For instance, you can label a word or label a sentence:
+
+### Adding Labels to Tokens
 
 A `Token` has fields for linguistic annotation, such as lemmas, part-of-speech tags or named entity tags. You can
 add a tag by specifying the tag type and the tag value. In this example, we're adding an NER tag of type 'color' to
@@ -143,43 +147,103 @@ This should print:
 Our color tag has a score of 1.0 since we manually added it. If a tag is predicted by our
 sequence labeler, the score value will indicate classifier confidence.
 
-## Adding Labels to Sentences
+### Adding Labels to Sentences
 
-A `Sentence` can have one or multiple labels that can for example be used in text classification tasks.
+You can also add a `Label` to a whole `Sentence`.
 For instance, the example below shows how we add the label 'sports' to a sentence, thereby labeling it
-as belonging to the sports category.
+as belonging to the sports "topic".
 
 ```python
 sentence = Sentence('France is the current world cup winner.')
 
 # add a label to a sentence
-sentence.add_label('sports')
-
-# a sentence can also belong to multiple classes
-sentence.add_labels(['sports', 'world cup'])
-
-# you can also set the labels while initializing the sentence
-sentence = Sentence('France is the current world cup winner.', labels=['sports', 'world cup'])
-```
-
-Labels are also of the `Label` class. So, you can print a sentence's labels like this: 
-
-```python
-sentence = Sentence('France is the current world cup winner.', labels=['sports', 'world cup'])
+sentence.add_label('topic', 'sports')
 
 print(sentence)
+
+# Alternatively, you can also create a sentence with label in one line
+sentence = Sentence('France is the current world cup winner.').add_label('topic', 'sports')
+
+print(sentence)
+```
+
+This should print: 
+
+```console
+Sentence: "France is the current world cup winner."   [− Tokens: 7  − Sentence-Labels: {'topic': [sports (1.0)]}]
+```
+
+Indicating that this sentence belongs to the topic 'sports' with confidence 1.0.
+
+### Multiple Labels
+
+Any data point can be labeled multiple times. A sentence for instance might belong to two topics. In this case, add two labels with the same label name:
+
+```python
+sentence = Sentence('France is the current world cup winner.')
+
+# this sentence has multiple topic labels
+sentence.add_label('topic', 'sports')
+sentence.add_label('topic', 'soccer')
+```
+
+You might want to add different layers of annotation for the same sentence. Next to topic you might also want to predict the "language" of a sentence. In this case, add a label with a different label name: 
+
+```python
+sentence = Sentence('France is the current world cup winner.')
+
+# this sentence has multiple "topic" labels
+sentence.add_label('topic', 'sports')
+sentence.add_label('topic', 'soccer')
+
+# this sentence has a "language" labels
+sentence.add_label('language', 'English')
+
+print(sentence)
+```
+
+This should print: 
+
+```console
+Sentence: "France is the current world cup winner."   [− Tokens: 7  − Sentence-Labels: {'topic': [sports (1.0), soccer (1.0)], 'language': [English (1.0)]}]
+```
+
+Indicating that this sentence has two "topic" labels and one "language" label. 
+
+### Accessing a Sentence's Labels
+
+You can access these labels like this: 
+
+```python
 for label in sentence.labels:
     print(label)
+```
+
+Remember that each label is a `Label` object, so you can also access the label's `value` and `score` fields directly:
+
+```python
+print(sentence.to_plain_string())
+for label in sentence.labels:
+    print(f' - classified as "{label.value}" with score {label.score}')
 ```
 
 This should print:
 
 ```console
-sports (1.0)
-world cup (1.0)
+France is the current world cup winner.
+ - classified as "sports" with score 1.0
+ - classified as "soccer" with score 1.0
 ```
 
-This indicates that the sentence belongs to these two classes, each with confidence score 1.0.
+If you are interested only in the labels of one layer of annotation, you can access them like this: 
+
+```python
+for label in sentence.get_labels('topic'):
+    print(label)
+```
+
+Giving you only the "topic" labels.
+
 
 ## Next
 

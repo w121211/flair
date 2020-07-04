@@ -1,10 +1,10 @@
 ![alt text](resources/docs/flair_logo_2020.png)
 
 [![PyPI version](https://badge.fury.io/py/flair.svg)](https://badge.fury.io/py/flair)
-[![GitHub Issues](https://img.shields.io/github/issues/zalandoresearch/flair.svg)](https://github.com/zalandoresearch/flair/issues)
+[![GitHub Issues](https://img.shields.io/github/issues/flairNLP/flair.svg)](https://github.com/flairNLP/flair/issues)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
-[![Travis](https://img.shields.io/travis/zalandoresearch/flair.svg)](https://travis-ci.org/zalandoresearch/flair)
+[![Travis](https://img.shields.io/travis/flairNLP/flair.svg)](https://travis-ci.org/flairNLP/flair)
 
 A very simple framework for **state-of-the-art NLP**. Developed by [Humboldt University of Berlin](https://www.informatik.hu-berlin.de/en/forschung-en/gebiete/ml-en/) and friends.
 
@@ -25,7 +25,7 @@ document embeddings, including our proposed **[Flair embeddings](https://drive.g
 * **A PyTorch NLP framework.** Our framework builds directly on [PyTorch](https://pytorch.org/), making it easy to 
 train your own models and experiment with new approaches using Flair embeddings and classes.
 
-Now at [version 0.4.5](https://github.com/zalandoresearch/flair/releases)!
+Now at [version 0.5](https://github.com/flairNLP/flair/releases)!
 
 ## Comparison with State-of-the-Art
 
@@ -40,7 +40,7 @@ Flair outperforms the previous best methods on a range of NLP tasks:
 | Chunking |English| Conll-2000  |  **96.72** (F1) | *96.36 [(Peters et al., 2017)](https://arxiv.org/pdf/1705.00108.pdf)*
 | Named Entity Recognition | German  | Conll-03    |  **88.27** (F1)  | *78.76 [(Lample et al., 2016)](https://arxiv.org/abs/1603.01360)* |
 | Named Entity Recognition |German  | Germeval    |  **84.65** (F1)  | *79.08 [(Hänig et al, 2014)](http://asv.informatik.uni-leipzig.de/publication/file/300/GermEval2014_ExB.pdf)*|
-| Named Entity Recognition | Dutch  | Conll-03    |  **90.44** (F1)  | *81.74 [(Lample et al., 2016)](https://arxiv.org/abs/1603.01360)* |
+| Named Entity Recognition | Dutch  | Conll-02    |  **92.38** (F1)  | *81.74 [(Lample et al., 2016)](https://arxiv.org/abs/1603.01360)* |
 | Named Entity Recognition |Polish  | PolEval-2018    |  **86.6** (F1) <br> [(Borchmann et al., 2018)](https://github.com/applicaai/poleval-2018) | *85.1 [(PolDeepNer)](https://github.com/CLARIN-PL/PolDeepNer/)*|
 
 Here's how to [reproduce these numbers](/resources/docs/EXPERIMENTS.md) using Flair. You can also find detailed evaluations and discussions in our papers:
@@ -106,7 +106,7 @@ Sentence: "I love Berlin ." - 4 Tokens
 
 The following NER tags are found: 
 
-LOC-span [3]: "Berlin"
+Span [3]: "Berlin"   [− Labels: LOC (0.9992)]
 ```
 
 ## Tutorials
@@ -118,10 +118,9 @@ We provide a set of quick tutorials to get you started with the library:
 * [Tutorial 3: Embedding Words](/resources/docs/TUTORIAL_3_WORD_EMBEDDING.md)
 * [Tutorial 4: List of All Word Embeddings](/resources/docs/TUTORIAL_4_ELMO_BERT_FLAIR_EMBEDDING.md)
 * [Tutorial 5: Embedding Documents](/resources/docs/TUTORIAL_5_DOCUMENT_EMBEDDINGS.md)
-* [Tutorial 6: Loading your own Corpus](/resources/docs/TUTORIAL_6_CORPUS.md)
-* [Tutorial 7: Training your own Models](/resources/docs/TUTORIAL_7_TRAINING_A_MODEL.md)
-* [Tutorial 8: Optimizing your Models](/resources/docs/TUTORIAL_8_MODEL_OPTIMIZATION.md)
-* [Tutorial 9: Training your own Flair Embeddings](/resources/docs/TUTORIAL_9_TRAINING_LM_EMBEDDINGS.md)
+* [Tutorial 6: Loading a Dataset](/resources/docs/TUTORIAL_6_CORPUS.md)
+* [Tutorial 7: Training a Model](/resources/docs/TUTORIAL_7_TRAINING_A_MODEL.md)
+* [Tutorial 8: Training your own Flair Embeddings](/resources/docs/TUTORIAL_9_TRAINING_LM_EMBEDDINGS.md)
  
 The tutorials explain how the base NLP classes work, how you can load pre-trained models to tag your
 text, how you can embed your text with different word or document embeddings, and how you can train your own 
@@ -170,7 +169,7 @@ Please email your questions or comments to [Alan Akbik](http://alanakbik.github.
 
 Thanks for your interest in contributing! There are many ways to get involved; 
 start with our [contributor guidelines](CONTRIBUTING.md) and then 
-check these [open issues](https://github.com/zalandoresearch/flair/issues) for specific tasks.
+check these [open issues](https://github.com/flairNLP/flair/issues) for specific tasks.
 
 For contributors looking to get deeper into the API we suggest cloning the repository and checking out the unit 
 tests for examples of how to call methods. Nearly all classes and methods are documented, so finding your way around 

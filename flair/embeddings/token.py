@@ -829,6 +829,11 @@ class TransformerWordEmbeddings(TokenEmbeddings):
         """
         super().__init__()
 
+        # temporary fix to disable tokenizer parallelism warning
+        # (see https://stackoverflow.com/questions/62691279/how-to-disable-tokenizers-parallelism-true-false-warning)
+        import os
+        os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
         # load tokenizer and transformer model
         self.tokenizer = AutoTokenizer.from_pretrained(model, **kwargs)
         config = AutoConfig.from_pretrained(model, output_hidden_states=True, **kwargs)
@@ -957,7 +962,9 @@ class TransformerWordEmbeddings(TokenEmbeddings):
                 encoded_inputs = self.tokenizer.encode_plus(subtoken_ids_sentence,
                                                             max_length=self.max_subtokens_sequence_length,
                                                             stride=self.stride,
-                                                            return_overflowing_tokens=self.allow_long_sentences)
+                                                            return_overflowing_tokens=self.allow_long_sentences,
+                                                            truncation=True,
+                                                            )
 
                 subtoken_ids_split_sentence = encoded_inputs['input_ids']
                 subtokenized_sentences.append(torch.tensor(subtoken_ids_split_sentence, dtype=torch.long))
@@ -1541,18 +1548,38 @@ class BPEmbSerializable(BPEmb):
 class BytePairEmbeddings(TokenEmbeddings):
     def __init__(
         self,
-        language: str,
+        language: str = None,
         dim: int = 50,
         syllables: int = 100000,
         cache_dir=Path(flair.cache_root) / "embeddings",
+        model_file_path: Path = None,
+        embedding_file_path: Path = None,
+        **kwargs,
     ):
         """
         Initializes BP embeddings. Constructor downloads required files if not there.
         """
+        if language:
+            self.name: str = f"bpe-{language}-{syllables}-{dim}"
+        else:
+            assert (
+                model_file_path is not None and embedding_file_path is not None
+            ), "Need to specify model_file_path and embedding_file_path if no language is given in BytePairEmbeddings(...)"
+            dim=None
 
-        self.name: str = f"bpe-{language}-{syllables}-{dim}"
+        self.embedder = BPEmb(
+            lang=language,
+            vs=syllables,
+            dim=dim,
+            cache_dir=cache_dir,
+            model_file=model_file_path,
+            emb_file=embedding_file_path,
+            **kwargs,
+        )
+
+        if not language:
+            self.name: str = f"bpe-custom-{self.embedder.vs}-{self.embedder.dim}"
         self.static_embeddings = True
-        self.embedder = BPEmb(lang=language, vs=syllables, dim=dim, cache_dir=cache_dir)
 
         self.__embedding_length: int = self.embedder.emb.vector_size * 2
         super().__init__()

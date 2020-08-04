@@ -4,7 +4,7 @@ from typing import List
 
 from elasticsearch_dsl import Q
 
-from . import es
+# from . import es
 
 # doc(paragraph > article) -> tickers[]
 data_folder = '/workspace/flair/data/@me-news-tickers'

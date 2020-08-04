@@ -16,7 +16,7 @@ services:
     volumes:
       - ../..:/workspace:cached
     ports:
-      - 8888:8888
+      - 8889:8888
       
     # Overrides default command so things don't shut down after the process ends.
     # command: sleep infinity
@@ -51,8 +51,7 @@ services:
     volumes:
       - ~/docker-volumes/esdata:/usr/share/elasticsearch/data
     ports:
-      - 9200:9200
-      # - 9300:9300
+      - 9201:9200
 
 # volumes:
 #   data01:

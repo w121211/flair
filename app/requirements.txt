@@ -1,0 +1,4 @@
+elasticsearch-dsl
+hydra-core
+pandas
+
